@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Produksi Harian</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #219653;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            color: #2980b9;
+        }
+        .pesan {
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .sukses { background: #d4edda; color: #155724; }
+        .gagal { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h2>📝 Input Data Produksi Harian</h2>
+
+    <div class="pesan sukses" id="pesanSukses">✅ Data berhasil disimpan ke Google Sheets</div>
+    <div class="pesan gagal" id="pesanGagal">❌ Gagal menyimpan, coba lagi</div>
+
+    <form id="formProduksi">
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" name="tanggal" required>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Pekerja</label>
+            <select name="pekerja" required>
+                <option value="">-- Pilih Pekerja --</option>
+                <option value="Budi Santoso">Budi Santoso</option>
+                <option value="Siti Aminah">Siti Aminah</option>
+                <option value="Agus Salim">Agus Salim</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Mesin</label>
+            <select name="mesin" required>
+                <option value="">-- Pilih Mesin --</option>
+                <option value="Mesin Jahit 1">Mesin Jahit 1</option>
+                <option value="Mesin Jahit 2">Mesin Jahit 2</option>
+                <option value="Mesin Potong">Mesin Potong</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Jumlah Produksi</label>
+            <input type="number" name="jumlah" min="1" required placeholder="Masukkan jumlah...">
+        </div>
+
+        <div class="form-group">
+            <label>Keterangan</label>
+            <textarea name="keterangan" rows="3" placeholder="Catatan tambahan (jika ada)"></textarea>
+        </div>
+
+        <button type="submit">Simpan Data</button>
+    </form>
+
+    <a href="index.html" class="back-link">← Kembali ke Menu Utama</a>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLHnteVB4UgEGVp5moVRDFX0K6jL1x_VahwiQA2mH06QU8fRAjemt2R0RV9gQacIyNWg/exec"; 
+
+        const form = document.getElementById("formProduksi");
+        const pesanSukses = document.getElementById("pesanSukses");
+        const pesanGagal = document.getElementById("pesanGagal");
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
+            pesanSukses.style.display = "none";
+            pesanGagal.style.display = "none";
+
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((val, key) => data[key] = val);
+
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.text())
+            .then(txt => {
+                pesanSukses.style.display = "block";
+                form.reset();
+            })
+            .catch(err => {
+                pesanGagal.style.display = "block";
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>
+
