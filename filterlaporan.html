@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Laporan Produksi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .filter-box {
+            background-color: #f8f9fa;
+            padding: 1.2rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.7rem 1.5rem;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1f618d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 0.8rem;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            color: #2980b9;
+        }
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h2>📊 Laporan Produksi</h2>
+
+    <div class="filter-box">
+        <h3>Filter Data</h3>
+        <div class="row">
+            <div>
+                <label>Tanggal Mulai</label>
+                <input type="date" id="tglMulai">
+            </div>
+            <div>
+                <label>Tanggal Selesai</label>
+                <input type="date" id="tglSelesai">
+            </div>
+            <div>
+                <label>Pekerja</label>
+                <select id="filterPekerja">
+                    <option value="">Semua Pekerja</option>
+                    <option value="Budi Santoso">Budi Santoso</option>
+                    <option value="Siti Aminah">Siti Aminah</option>
+                    <option value="Agus Salim">Agus Salim</option>
+                </select>
+            </div>
+            <div>
+                <label>Mesin</label>
+                <select id="filterMesin">
+                    <option value="">Semua Mesin</option>
+                    <option value="Mesin Jahit 1">Mesin Jahit 1</option>
+                    <option value="Mesin Jahit 2">Mesin Jahit 2</option>
+                    <option value="Mesin Potong">Mesin Potong</option>
+                </select>
+            </div>
+        </div>
+        <button id="btnFilter">Terapkan Filter</button>
+    </div>
+
+    <div id="statusMuat" class="loading">Sedang memuat data...</div>
+
+    <table id="tabelData" style="display: none;">
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Pekerja</th>
+                <th>Mesin</th>
+                <th>Jumlah</th>
+                <th>Keterangan</th>
+                <th>Waktu Input</th>
+            </tr>
+        </thead>
+        <tbody id="isiTabel">
+        </tbody>
+    </table>
+
+    <a href="index.html" class="back-link">← Kembali ke Menu Utama</a>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLHnteVB4UgEGVp5moVRDFX0K6jL1x_VahwiQA2mH06QU8fRAjemt2R0RV9gQacIyNWg/exec";
+        let semuaData = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            ambilData();
+            document.getElementById("btnFilter").addEventListener("click", terapkanFilter);
+        });
+
+        function ambilData() {
+            fetch(SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    semuaData = data;
+                    document.getElementById("statusMuat").style.display = "none";
+                    document.getElementById("tabelData").style.display = "table";
+                    tampilkanData(data);
+                })
+                .catch(err => {
+                    document.getElementById("statusMuat").textContent = "❌ Gagal memuat data. Cek koneksi atau pengaturan skrip.";
+                    console.error(err);
+                });
+        }
+
+        function tampilkanData(data) {
+            const isi = document.getElementById("isiTabel");
+            isi.innerHTML = "";
+            if (data.length === 0) {
+                isi.innerHTML = "<tr><td colspan='6' style='text-align:center'>Data tidak ditemukan</td></tr>";
+                return;
+            }
+            data.forEach(baris => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${baris.Tanggal || ""}</td>
+                    <td>${baris.Pekerja || ""}</td>
+                    <td>${baris.Mesin || ""}</td>
+                    <td>${baris.Jumlah || ""}</td>
+                    <td>${baris.Keterangan || ""}</td>
+                    <td>${baris["Waktu Input"] || ""}</td>
+                `;
+                isi.appendChild(tr);
+            });
+        }
+
+        function terapkanFilter() {
+            const tglMulai = document.getElementById("tglMulai").value;
+            const tglSelesai = document.getElementById("tglSelesai").value;
+            const pekerja = document.getElementById("filterPekerja").value;
+            const mesin = document.getElementById("filterMesin").value;
+
+            let hasil = semuaData.filter(item => {
+                let cocok = true;
+                if (tglMulai && item.Tanggal < tglMulai) cocok = false;
+                if (tglSelesai && item.Tanggal > tglSelesai) cocok = false;
+                if (pekerja && item.Pekerja !== pekerja) cocok = false;
+                if (mesin && item.Mesin !== mesin) cocok = false;
+                return cocok;
+            });
+
+            tampilkanData(hasil);
+        }
+    </script>
+</body>
+</html>
+
